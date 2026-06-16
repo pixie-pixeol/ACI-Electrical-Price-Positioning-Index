@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ACI Sparkle — Price Positioning Index</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --primary:    #156082;
+    --primary-lt: #6FAEFE;
+    --navy:       #093959;
+    --indigo:     #242867;
+    --white:      #FFFFFF;
+    --off-white:  #F4F7FB;
+    --gray-lt:    #EAF0F6;
+    --gray-mid:   #94A3B8;
+    --gray-dark:  #475569;
+    --text:       #1E2D3D;
+    --border:     #D6E4EF;
+  }
+
+  body {
+    font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ─────────────────────────────────────────────────────────── */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--primary) 60%, #1a7a9e 100%);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tri-decor {
+    position: absolute;
+    top: 0; right: 0;
+    width: 420px; height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .tri-decor svg { width: 100%; height: 100%; }
+
+  .header-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 52px 48px 44px;
+  }
+
+  .header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+  .header h1 em {
+    font-style: normal;
+    color: var(--primary-lt);
+  }
+  .header-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 400;
+    margin-bottom: 32px;
+    letter-spacing: 0.2px;
+  }
+
+  .header-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .pill {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(4px);
+  }
+  .pill strong { color: var(--primary-lt); }
+
+  /* ── CONTROLS ────────────────────────────────────────────────────────── */
+  .controls-bar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(21,96,130,0.08);
+  }
+  .controls-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 14px 48px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--off-white);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px 9px 38px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-wrap input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(21,96,130,0.12);
+  }
+  .search-wrap input::placeholder { color: var(--gray-mid); }
+  .search-icon {
+    position: absolute;
+    left: 11px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-mid);
+    font-size: 15px;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 7px 14px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-dark);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.2px;
+  }
+  .tab:hover { background: var(--gray-lt); border-color: #b0c8d8; }
+  .tab.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(21,96,130,0.25);
+  }
+
+  /* ── MAIN CONTENT ────────────────────────────────────────────────────── */
+  .main {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 36px 48px 64px;
+  }
+
+  /* ── STAT CARDS ──────────────────────────────────────────────────────── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .stat-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: box-shadow 0.2s;
+  }
+  .stat-card:hover { box-shadow: 0 4px 16px rgba(21,96,130,0.1); }
+  .stat-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gray-mid);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1;
+  }
+
+  /* ── SECTION ─────────────────────────────────────────────────────────── */
+  .section { margin-bottom: 36px; }
+  .section-hd {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .section-stripe {
+    width: 4px; height: 22px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--gray-dark);
+  }
+  .section-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-count {
+    font-size: 11px;
+    color: var(--gray-mid);
+    font-weight: 600;
+    background: var(--gray-lt);
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+
+  /* ── GRID & CARDS ────────────────────────────────────────────────────── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+  }
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.18s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    opacity: 0;
+    transition: opacity 0.18s;
+    border-radius: 10px 0 0 10px;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(21,96,130,0.12);
+    border-color: #b0c8d8;
+  }
+  .card:hover::after { opacity: 1; }
+
+  .c-icon {
+    width: 38px; height: 38px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .c-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .c-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    flex-shrink: 0;
+  }
+  .c-arrow {
+    font-size: 14px;
+    color: var(--gray-mid);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: all 0.18s;
+    flex-shrink: 0;
+  }
+  .card:hover .c-arrow { opacity: 1; transform: translateX(0); }
+
+  /* Category colour tokens */
+  .cat-gss   .c-icon  { background: rgba(21,96,130,0.10); color: var(--primary); }
+  .cat-gss   .c-badge { background: rgba(21,96,130,0.10); color: var(--primary); }
+  .cat-gss   .c-arrow { color: var(--primary); }
+  .cat-gss::after     { background: var(--primary); }
+
+  .cat-acc   .c-icon  { background: rgba(36,40,103,0.10); color: var(--indigo); }
+  .cat-acc   .c-badge { background: rgba(36,40,103,0.10); color: var(--indigo); }
+  .cat-acc   .c-arrow { color: var(--indigo); }
+  .cat-acc::after     { background: var(--indigo); }
+
+  .cat-light .c-icon  { background: rgba(111,174,254,0.15); color: #1a7abc; }
+  .cat-light .c-badge { background: rgba(111,174,254,0.15); color: #1a7abc; }
+  .cat-light .c-arrow { color: #1a7abc; }
+  .cat-light::after   { background: #6FAEFE; }
+
+  .cat-fan   .c-icon  { background: rgba(16,130,88,0.10); color: #0e7a52; }
+  .cat-fan   .c-badge { background: rgba(16,130,88,0.10); color: #0e7a52; }
+  .cat-fan   .c-arrow { color: #0e7a52; }
+  .cat-fan::after     { background: #0e7a52; }
+
+  .cat-ref   .c-icon  { background: rgba(9,57,89,0.10);   color: var(--navy); }
+  .cat-ref   .c-badge { background: rgba(9,57,89,0.10);   color: var(--navy); }
+  .cat-ref   .c-arrow { color: var(--navy); }
+  .cat-ref::after     { background: var(--navy); }
+
+  /* ── EMPTY STATE ─────────────────────────────────────────────────────── */
+  #no-results {
+    display: none;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--gray-mid);
+  }
+  #no-results p { font-size: 15px; margin-top: 12px; }
+
+  /* ── FOOTER ──────────────────────────────────────────────────────────── */
+  .footer {
+    background: var(--navy);
+    padding: 28px 48px;
+  }
+  .footer-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-brand { font-size: 13px; font-weight: 700; color: white; letter-spacing: 1px; }
+  .footer-meta  { font-size: 12px; color: rgba(255,255,255,0.45); }
+
+  /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
+  @media (max-width: 960px) {
+    .header-inner, .controls-inner, .main, .footer { padding-left: 20px; padding-right: 20px; }
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+    .header h1 { font-size: 26px; }
+    .tri-decor { width: 200px; }
+  }
+  @media (max-width: 600px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .grid { grid-template-columns: 1fr; }
+    .filter-tabs { gap: 4px; }
+    .tab { padding: 6px 10px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
+<div class="header">
+  <div class="tri-decor">
+    <svg viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMaxYMin slice">
+      <polygon points="320,0 420,0 420,100"     fill="#1a7a9e" opacity="0.55"/>
+      <polygon points="240,0 360,0 300,80"      fill="#6FAEFE" opacity="0.35"/>
+      <polygon points="300,80 360,0 420,100"    fill="#093959" opacity="0.45"/>
+      <polygon points="200,40 280,40 240,120"   fill="#156082" opacity="0.40"/>
+      <polygon points="340,60 420,60 380,140"   fill="#6FAEFE" opacity="0.25"/>
+      <polygon points="260,100 340,100 300,180" fill="#242867" opacity="0.40"/>
+      <polygon points="360,120 420,120 420,200" fill="#1a7a9e" opacity="0.30"/>
+      <polygon points="300,180 380,180 340,260" fill="#6FAEFE" opacity="0.20"/>
+      <polygon points="200,160 280,160 240,240" fill="#156082" opacity="0.25"/>
+      <polygon points="380,200 420,200 420,280" fill="#093959" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="header-inner">
+    <h1>Price Positioning <em>Index</em></h1>
+    <div class="header-sub">Competitive analysis files for all Sparkle product lines &nbsp;·&nbsp; FY 2025–26</div>
+    <div class="header-pills">
+      <div class="pill">📁 <strong>25</strong> Files</div>
+      <div class="pill">🔵 <strong>9</strong> Gang Switch</div>
+      <div class="pill">💡 <strong>7</strong> Light</div>
+      <div class="pill">⚙️ <strong>5</strong> Other Accessories</div>
+      <div class="pill">🌀 <strong>2</strong> Fan</div>
+      <div class="pill">📂 <strong>2</strong> Reference</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONTROLS ════════════════════════════════════════════════════════ -->
+<div class="controls-bar">
+  <div class="controls-inner">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search files… e.g. Gold, MCB, IPS NEO" oninput="applyFilter()" />
+    </div>
+    <div class="filter-tabs">
+      <button class="tab active" onclick="setFilter('all',this)">All</button>
+      <button class="tab" onclick="setFilter('gss',this)">Gang Switch</button>
+      <button class="tab" onclick="setFilter('light',this)">Light</button>
+      <button class="tab" onclick="setFilter('acc',this)">Accessories</button>
+      <button class="tab" onclick="setFilter('fan',this)">Fan</button>
+      <button class="tab" onclick="setFilter('ref',this)">Reference</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN ════════════════════════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- Stat cards -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(21,96,130,0.1)">🔌</div>
+      <div><div class="stat-label">Gang Switch</div><div class="stat-value" style="color:var(--primary)">9</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(111,174,254,0.15)">💡</div>
+      <div><div class="stat-label">Light</div><div class="stat-value" style="color:#1a7abc">7</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(36,40,103,0.1)">⚙️</div>
+      <div><div class="stat-label">Other Accessories</div><div class="stat-value" style="color:var(--indigo)">5</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(16,130,88,0.1)">🌀</div>
+      <div><div class="stat-label">Fan</div><div class="stat-value" style="color:#0e7a52">2</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(9,57,89,0.1)">📂</div>
+      <div><div class="stat-label">Reference</div><div class="stat-value" style="color:var(--navy)">2</div></div>
+    </div>
+  </div>
+
+  <div id="no-results">
+    <div style="font-size:36px">🔍</div>
+    <p>No files match your search.</p>
+  </div>
+
+  <!-- ── GANG SWITCH SERIES ──────────────────────────────────────────── -->
+  <div class="section" data-cat="gss">
+    <div class="section-hd">
+      <div class="section-stripe" style="background:var(--primary)"></div>
+      <div class="section-title">Gang Switch Series (GSS)</div>
+      <div class="section-rule"></div>
+      <div class="section-count">9 files</div>
+    </div>
+    <div class="grid">
+      <a class="card cat-gss" href="https://docs.google.com/spreadsheets/d/1EDkhi-tUETdQP-Paymwya0U5mOdWA37_gqNPmNJuSK4/edit" target="_blank">
+        <div class="c-icon">🥇</div><div class="c-name">Gold</div><div class="c-badge">GSS</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-gss" href="https://docs.google.com/spreadsheets/d/1dJpEjZIyCXIhU9AhkOKeUj1mUxaDx4dc5yCipGSVBoc/edit" target="_blank">
+        <div class="c-icon">💎</div><div class="c-name">Platina</div><div class="c-badge">GSS</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-gss" href="https://docs.google.com/spreadsheets/d/1LS2Lr1Y3IpAm-062kYsSiEu0eSrGevYeYyVLds0KPV0/edit" target="_blank">
+        <div class="c-icon">🔷</div><div class="c-name">Marbello</div><div class="c-badge">GSS</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-gss" href="https://docs.google.com/spreadsheets/d/1_BvGG7Becf2OJdaxySM8nYMXEZ6WMCPk3bYcwU1udCw/edit" target="_blank">
+        <div class="c-icon">🔘</div><div class="c-name">Moslinno</div><div class="c-badge">GSS</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-gss" href="https://docs.google.com/spreadsheets/d/1QHS-rJZXk6OnIaznRHJez6I9lyJuGre6rJfkl5_FjLA/edit" target="_blank">
+        <div class="c-icon">🤖</div><div class="c-name">Smart</div><div class="c-badge">GSS</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-gss" href="https://docs.google.com/spreadsheets/d/14oC9sMjhUb46A5ct7f1GmFBTNv3yBdIJj3A8VunIk3Q/edit" target="_blank">
+        <div class="c-icon">⬜</div><div class="c-name">Ultra White</div><div class="c-badge">GSS</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-gss" href="https://docs.google.com/spreadsheets/d/1CePCgzDpgEwC_UMlR7kv54qGd6CjepARODvwfYvNzJo/edit" target="_blank">
+        <div class="c-icon">🦅</div><div class="c-name">Falcon</div><div class="c-badge">GSS</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-gss" href="https://docs.google.com/spreadsheets/d/14FqOn5ETxkYsbI3sSRKQe41lgnwfUIxNURUjwzd2dWY/edit" target="_blank">
+        <div class="c-icon">⭐</div><div class="c-name">Pro</div><div class="c-badge">GSS</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-gss" href="https://docs.google.com/spreadsheets/d/1nqMpZ2UyG3H_4WiipCpAAjSiI6eP0ICEUiGG1t4S1cg/edit" target="_blank">
+        <div class="c-icon">🎵</div><div class="c-name">Opera</div><div class="c-badge">GSS</div><div class="c-arrow">→</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ── LIGHT ──────────────────────────────────────────────────────── -->
+  <div class="section" data-cat="light">
+    <div class="section-hd">
+      <div class="section-stripe" style="background:#6FAEFE"></div>
+      <div class="section-title">Light</div>
+      <div class="section-rule"></div>
+      <div class="section-count">7 files</div>
+    </div>
+    <div class="grid">
+      <a class="card cat-light" href="https://docs.google.com/spreadsheets/d/10JYBRvAa6xzRc3ZdVb-6ueW_vic_UA5_51UG6hk9WWA/edit" target="_blank">
+        <div class="c-icon">🏆</div><div class="c-name">Prime</div><div class="c-badge">LIGHT</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-light" href="https://docs.google.com/spreadsheets/d/1AYl4X5gt5afahVPWKtYsZ5p41nDdhkJ_EowAEi8eF_o/edit" target="_blank">
+        <div class="c-icon">⚡</div><div class="c-name">Hi-Power</div><div class="c-badge">LIGHT</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-light" href="https://docs.google.com/spreadsheets/d/14rIbuMNX4VV4-bdhIhimNV5esnNvZux1Y1BP8qrwzoQ/edit" target="_blank">
+        <div class="c-icon">🔋</div><div class="c-name">IPS Bulb</div><div class="c-badge">LIGHT</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-light" href="https://docs.google.com/spreadsheets/d/1h-V4zXa4gJHjSxR8dy4RJYQASTMSNLAofC7rckSnq7w/edit" target="_blank">
+        <div class="c-icon">🔦</div><div class="c-name">Batten Tube</div><div class="c-badge">LIGHT</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-light" href="https://docs.google.com/spreadsheets/d/1StoiyWBu_W2q2htP8xGwFKAhJOqL4I6yAor5OPNvP3o/edit" target="_blank">
+        <div class="c-icon">🔆</div><div class="c-name">Panel Light</div><div class="c-badge">LIGHT</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-light" href="https://docs.google.com/spreadsheets/d/1KgYSxJr35Ae9eKfhQoHgRVVBja9vgHx7irhJHXjz9ok/edit" target="_blank">
+        <div class="c-icon">💡</div><div class="c-name">GLS</div><div class="c-badge">LIGHT</div><div class="c-arrow">→</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ── OTHER ACCESSORIES ──────────────────────────────────────────── -->
+  <div class="section" data-cat="acc">
+    <div class="section-hd">
+      <div class="section-stripe" style="background:var(--indigo)"></div>
+      <div class="section-title">Other Accessories</div>
+      <div class="section-rule"></div>
+      <div class="section-count">5 files</div>
+    </div>
+    <div class="grid">
+      <a class="card cat-acc" href="https://docs.google.com/spreadsheets/d/1xk-YEXZs3wxM6Lzuj9YsonP5pKSdPVtbX-S4ElcGkYA/edit" target="_blank">
+        <div class="c-icon">🔌</div><div class="c-name">8 Pin</div><div class="c-badge">ACC</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-acc" href="https://docs.google.com/spreadsheets/d/1KJOkYKJTeAWPTHotYhdhccnqf7KmrJ8Jro7Vz9IRI1M/edit" target="_blank">
+        <div class="c-icon">🛡️</div><div class="c-name">MCB</div><div class="c-badge">ACC</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-acc" href="https://docs.google.com/spreadsheets/d/1zjvo6uTglwZpE7LxE5jCvMZp7WCT7rzazppV5Mrt998/edit" target="_blank">
+        <div class="c-icon">🔧</div><div class="c-name">PC Others</div><div class="c-badge">ACC</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-acc" href="https://docs.google.com/spreadsheets/d/1N6XLXrAN0uwUDpTjuQ2My-HvpZww6y8FVJJSEN3xX_I/edit" target="_blank">
+        <div class="c-icon">🖊️</div><div class="c-name">Voltage Tester</div><div class="c-badge">ACC</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-acc" href="https://docs.google.com/spreadsheets/d/1lLXowSpZ9wwrTtB7MGOe6PDIwGqSdpFA0HrFKX1X_HI/edit" target="_blank">
+        <div class="c-icon">⚙️</div><div class="c-name">Fan Capacitor</div><div class="c-badge">ACC</div><div class="c-arrow">→</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ── FAN ────────────────────────────────────────────────────────── -->
+  <div class="section" data-cat="fan">
+    <div class="section-hd">
+      <div class="section-stripe" style="background:#0e7a52"></div>
+      <div class="section-title">Fan</div>
+      <div class="section-rule"></div>
+      <div class="section-count">2 files</div>
+    </div>
+    <div class="grid">
+      <a class="card cat-fan" href="https://docs.google.com/spreadsheets/d/1U4CqxuR1xwW4tfyb9nauZmuUtnRpjTXLHmamo5VoT6k/edit" target="_blank">
+        <div class="c-icon">🌀</div><div class="c-name">RDF</div><div class="c-badge">FAN</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-fan" href="https://docs.google.com/spreadsheets/d/15zkYuuE8rn5_RwdzYC2NTSwFsEGvA74mnc1bmS9crL4/edit" target="_blank">
+        <div class="c-icon">🦟</div><div class="c-name">Mosquito Bat</div><div class="c-badge">FAN</div><div class="c-arrow">→</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ── REFERENCE ──────────────────────────────────────────────────── -->
+  <div class="section" data-cat="ref">
+    <div class="section-hd">
+      <div class="section-stripe" style="background:var(--navy)"></div>
+      <div class="section-title">Reference Files</div>
+      <div class="section-rule"></div>
+      <div class="section-count">2 files</div>
+    </div>
+    <div class="grid">
+      <a class="card cat-ref" href="https://docs.google.com/spreadsheets/d/1vr8VY2k8vB0X9Uq-MPCgierWqvTUu-VjraavBhBmWZs/edit" target="_blank">
+        <div class="c-icon">📦</div><div class="c-name">Source File</div><div class="c-badge">REF</div><div class="c-arrow">→</div>
+      </a>
+      <a class="card cat-ref" href="https://docs.google.com/spreadsheets/d/1BcSPz_vH2LrG7bzCwKkVF1Ztzp0rBaKJvwMQYCvex0A/edit" target="_blank">
+        <div class="c-icon">💰</div><div class="c-name">Probable COGS FY2026–27</div><div class="c-badge">REF</div><div class="c-arrow">→</div>
+      </a>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ══ FOOTER ══════════════════════════════════════════════════════════ -->
+<div class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">ACI SPARKLE® &nbsp;·&nbsp; Price Positioning Index</div>
+    <div class="footer-meta">FY 2025–26 &nbsp;·&nbsp; 25 files &nbsp;·&nbsp; ACI Electrical, Dhaka</div>
+  </div>
+</div>
+
+<script>
+  let activeFilter = 'all';
+
+  function setFilter(cat, btn) {
+    activeFilter = cat;
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilter();
+  }
+
+  function applyFilter() {
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    const sections = document.querySelectorAll('.section');
+    let total = 0;
+
+    sections.forEach(sec => {
+      const cat = sec.dataset.cat;
+      const catOk = activeFilter === 'all' || activeFilter === cat;
+      if (!catOk) { sec.style.display = 'none'; return; }
+      sec.style.display = '';
+
+      let vis = 0;
+      sec.querySelectorAll('.card').forEach(card => {
+        const name = card.querySelector('.c-name').textContent.toLowerCase();
+        const show = !q || name.includes(q);
+        card.style.display = show ? '' : 'none';
+        if (show) vis++;
+      });
+      sec.style.display = vis > 0 ? '' : 'none';
+      total += vis;
+    });
+
+    document.getElementById('no-results').style.display = total === 0 ? 'block' : 'none';
+  }
+</script>
+</body>
+</html>
